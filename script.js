@@ -80,3 +80,193 @@ form.addEventListener('submit', (e) => {
 });
 
 document.getElementById('year').textContent = new Date().getFullYear();
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+/* ---------------------------------------------------------
+   Campo de triángulos: celdas de 40×30 divididas por su
+   diagonal (atan(30/40) = 37°, el ángulo de la flecha del
+   isotipo). La luz sigue al cursor y se ve por las uniones.
+   --------------------------------------------------------- */
+const TONES = {
+  dark: {
+    radius: 300,
+    face: [120, 165, 245], faceAlpha: 0.45,
+    edge: [170, 205, 255], edgeAlpha: 1, halo: 0.55, width: 1.6,
+    base: 0.05,
+    hot: [252, 129, 38],
+  },
+  light: {
+    radius: 240,
+    face: [40, 94, 201], faceAlpha: 0.24,
+    edge: [40, 94, 201], edgeAlpha: 1, halo: 0.14, width: 1.3,
+    base: 0,
+    hot: [252, 129, 38],
+  },
+};
+
+function triField(canvas) {
+  const section = canvas.parentElement;
+  const tone = TONES[canvas.dataset.tone] || TONES.dark;
+  const ctx = canvas.getContext('2d');
+  const W = 40, H = 30;
+  let tris = [], width = 0, height = 0, dpr = 1;
+  const pos = { x: -9999, y: -9999 };
+  const target = { x: -9999, y: -9999 };
+  let glow = 0, glowTarget = 0, raf = 0, visible = true;
+
+  function build() {
+    const r = section.getBoundingClientRect();
+    width = r.width; height = r.height;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    tris = [];
+    for (let y = 0; y < height + H; y += H) {
+      for (let x = 0; x < width + W; x += W) {
+        // dos triángulos por celda, separados por la diagonal ascendente
+        tris.push({ p: [x, y, x + W, y, x, y + H], cx: x + W / 3, cy: y + H / 3, s: Math.random() });
+        tris.push({ p: [x + W, y, x + W, y + H, x, y + H], cx: x + (2 * W) / 3, cy: y + (2 * H) / 3, s: Math.random() });
+      }
+    }
+    draw();
+  }
+
+  function draw() {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+    const R = tone.radius;
+    ctx.lineWidth = 1;
+    ctx.lineJoin = 'round';
+
+    // trama de base, muy tenue
+    if (tone.base) {
+      ctx.strokeStyle = `rgba(${tone.edge}, ${tone.base})`;
+      ctx.beginPath();
+      for (let y = 0; y <= height + H; y += H) { ctx.moveTo(0, y); ctx.lineTo(width, y); }
+      for (let x = 0; x <= width + W; x += W) { ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.moveTo(x, height); }
+      for (let y = 0; y <= height + H; y += H) {
+        for (let x = 0; x <= width; x += W) { ctx.moveTo(x, y + H); ctx.lineTo(x + W, y); }
+      }
+      ctx.stroke();
+    }
+    if (glow < 0.01) return;
+
+    // halo de luz bajo la trama
+    const g = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, R * 1.1);
+    g.addColorStop(0, `rgba(${tone.face}, ${tone.halo * glow})`);
+    g.addColorStop(1, `rgba(${tone.face}, 0)`);
+    ctx.fillStyle = g;
+    ctx.fillRect(pos.x - R * 1.1, pos.y - R * 1.1, R * 2.2, R * 2.2);
+    ctx.lineWidth = tone.width;
+
+    for (const t of tris) {
+      const dx = t.cx - pos.x, dy = t.cy - pos.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 > R * R) continue;
+      const f = Math.pow(1 - Math.sqrt(d2) / R, 1.2) * glow;
+      const p = t.p;
+      ctx.beginPath();
+      ctx.moveTo(p[0], p[1]); ctx.lineTo(p[2], p[3]); ctx.lineTo(p[4], p[5]); ctx.closePath();
+      const hot = t.s > 0.93 && f > 0.3;
+      const c = hot ? tone.hot : tone.face;
+      ctx.fillStyle = `rgba(${c}, ${hot ? f * 0.6 : f * tone.faceAlpha * (0.35 + t.s)})`;
+      ctx.fill();
+      ctx.strokeStyle = `rgba(${tone.edge}, ${f * tone.edgeAlpha})`;
+      ctx.stroke();
+    }
+  }
+
+  function tick() {
+    pos.x += (target.x - pos.x) * 0.14;
+    pos.y += (target.y - pos.y) * 0.14;
+    glow += (glowTarget - glow) * 0.08;
+    draw();
+    const moving = Math.abs(target.x - pos.x) > 0.3 || Math.abs(target.y - pos.y) > 0.3 || Math.abs(glowTarget - glow) > 0.005;
+    raf = moving && visible ? requestAnimationFrame(tick) : 0;
+  }
+  const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
+
+  if (reduceMotion) {
+    glow = glowTarget = 0.35;
+  } else if (canHover) {
+    section.addEventListener('pointermove', (e) => {
+      const r = section.getBoundingClientRect();
+      target.x = e.clientX - r.left; target.y = e.clientY - r.top;
+      if (glow < 0.02) { pos.x = target.x; pos.y = target.y; }
+      glowTarget = 1;
+      kick();
+    });
+    section.addEventListener('pointerleave', () => { glowTarget = 0; kick(); });
+  } else {
+    // táctil: la luz recorre la sección sola, despacio
+    let t0 = performance.now();
+    const wander = (now) => {
+      if (visible) {
+        const t = (now - t0) / 1000;
+        target.x = width * (0.5 + 0.38 * Math.sin(t * 0.35));
+        target.y = height * (0.5 + 0.32 * Math.sin(t * 0.52 + 1));
+        glowTarget = 0.8;
+        pos.x += (target.x - pos.x) * 0.05; pos.y += (target.y - pos.y) * 0.05;
+        glow += (glowTarget - glow) * 0.05;
+        draw();
+      }
+      requestAnimationFrame(wander);
+    };
+    requestAnimationFrame(wander);
+  }
+
+  new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) kick(); }).observe(section);
+  let rt;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(build, 150); });
+  build();
+  if (reduceMotion) { pos.x = target.x = width * 0.9; pos.y = target.y = height * 0.85; draw(); }
+}
+document.querySelectorAll('.tri-field').forEach(triField);
+
+/* ---------------------------------------------------------
+   Plano: inclinación 3D y vínculo entre nota y elemento
+   --------------------------------------------------------- */
+const store = document.querySelector('.store');
+if (canHover && !reduceMotion) {
+  figure.addEventListener('pointermove', (e) => {
+    const r = store.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    store.style.setProperty('--ry', (x * 10).toFixed(2) + 'deg');
+    store.style.setProperty('--rx', (-y * 8).toFixed(2) + 'deg');
+    figure.classList.add('is-tilting');
+  });
+  figure.addEventListener('pointerleave', () => {
+    store.style.setProperty('--rx', '0deg');
+    store.style.setProperty('--ry', '0deg');
+    figure.classList.remove('is-tilting');
+  });
+}
+figure.querySelectorAll('[data-note]').forEach((el) => {
+  const note = figure.querySelector('.' + el.dataset.note);
+  const on = () => { el.classList.add('is-hot'); note.classList.add('is-hot'); };
+  const off = () => { el.classList.remove('is-hot'); note.classList.remove('is-hot'); };
+  [el, note.querySelector('span')].forEach((n) => {
+    n.addEventListener('pointerenter', on);
+    n.addEventListener('pointerleave', off);
+  });
+});
+
+/* ---------------------------------------------------------
+   Foco de luz que sigue al cursor dentro de las tarjetas
+   --------------------------------------------------------- */
+if (canHover) {
+  document.querySelectorAll('.step, .channels > div, .timeline li, .form').forEach((card) => {
+    card.addEventListener('pointermove', (e) => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', e.clientX - r.left + 'px');
+      card.style.setProperty('--my', e.clientY - r.top + 'px');
+    });
+    card.addEventListener('pointerleave', () => {
+      card.style.setProperty('--mx', '-999px');
+      card.style.setProperty('--my', '-999px');
+    });
+  });
+}

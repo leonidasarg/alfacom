@@ -517,3 +517,141 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .form { grid-template-columns: 1fr; box-shadow: 6px 6px 0 var(--azul); }
   .form .btn { justify-self: stretch; }
 }
+
+/* =========================================================
+   INTERACCIÓN — campo de triángulos y hovers
+   ========================================================= */
+
+/* Campo de triángulos a 37° que se ilumina con el cursor */
+.tri-field {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+}
+.media { position: relative; overflow: hidden; }
+.media > .wrap { position: relative; z-index: 1; }
+.hero > .wrap { z-index: 1; }
+
+/* Botones: elevación con sombra dura + barrido diagonal */
+.btn {
+  position: relative; overflow: hidden; isolation: isolate;
+  transition: background-color .2s, color .2s, border-color .2s, transform .2s cubic-bezier(.3,.7,.4,1), box-shadow .2s cubic-bezier(.3,.7,.4,1);
+}
+.btn::after {
+  content: ""; position: absolute; top: -50%; bottom: -50%; left: 0; width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+  transform: translateX(-180%) rotate(37deg);
+  z-index: -1; pointer-events: none;
+}
+.btn:hover::after { transform: translateX(320%) rotate(37deg); transition: transform .65s ease; }
+.btn-primary:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--noche); }
+.btn-dark:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--azul); }
+.btn-ghost:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--azul); }
+.btn:active { transform: translate(0, 0); box-shadow: 0 0 0 transparent; transition-duration: .06s; }
+
+/* Navegación: subrayado que crece */
+.nav a:not(.btn) { position: relative; }
+.nav a:not(.btn)::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px;
+  background: var(--naranja); transform: scaleX(0); transform-origin: left;
+  transition: transform .25s cubic-bezier(.3,.7,.4,1);
+}
+.nav a:not(.btn):hover::after { transform: scaleX(1); }
+
+.brand img { transition: transform .3s cubic-bezier(.3,.7,.4,1); }
+.brand:hover img { transform: translate(2px, -2px); }
+
+/* Plano: inclinación 3D siguiendo el cursor */
+.blueprint { perspective: 1200px; }
+.store {
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform .5s cubic-bezier(.3,.7,.4,1), box-shadow .4s;
+}
+.blueprint.is-tilting .store { transition: transform .1s linear, box-shadow .4s; box-shadow: 16px 16px 0 var(--azul); }
+.store [data-note] { transition: outline-color .2s, transform .2s; outline: 2px dashed transparent; outline-offset: 4px; border-radius: 4px; }
+.store [data-note].is-hot { outline-color: var(--azul); }
+.buy.is-hot { transform: scale(1.03); }
+.notes span { pointer-events: auto; cursor: default; transition: background-color .2s, color .2s, border-color .2s; }
+.notes li::before { transition: border-color .2s; }
+.notes li.is-hot span { background: var(--noche); color: var(--blanco); border-color: var(--noche); }
+.notes li.is-hot::before { border-top-color: var(--naranja); border-top-style: solid; }
+.notes li.is-hot::after { background: var(--naranja); }
+.product-img svg { transition: transform .5s cubic-bezier(.3,.7,.4,1); }
+.store:hover .product-img svg { transform: translate(4px, -6px) rotate(-4deg); }
+.sizes span { transition: border-color .15s, background-color .15s; }
+.sizes span:hover { border-color: var(--azul); background: var(--niebla); }
+
+/* Tarjetas con foco de luz que sigue al cursor */
+.step, .channels > div, .timeline li, .form { --mx: -999px; --my: -999px; }
+.step {
+  background-image: radial-gradient(280px circle at var(--mx) var(--my), rgba(40,94,201,.12), transparent 70%);
+  transition: transform .35s cubic-bezier(.3,.7,.4,1), box-shadow .35s cubic-bezier(.3,.7,.4,1);
+}
+.s3 { background-image: radial-gradient(280px circle at var(--mx) var(--my), rgba(120,165,245,.22), transparent 70%); }
+.step:hover { transform: translateY(-8px); box-shadow: 8px 8px 0 var(--azul); }
+.s3:hover { box-shadow: 8px 8px 0 var(--naranja); }
+.step h3 { transition: transform .35s cubic-bezier(.3,.7,.4,1); }
+.step:hover h3 { transform: translateX(4px); }
+.step li { transition: padding-left .2s; }
+.step li:hover { padding-left: 28px; }
+
+.platforms li { transition: background-color .2s, color .2s, border-color .2s, transform .2s; }
+.platforms li:hover { background: var(--noche); border-color: var(--noche); color: var(--blanco); transform: translateY(-2px); }
+
+.channels > div { background-image: radial-gradient(320px circle at var(--mx) var(--my), rgba(120,165,245,.16), transparent 70%); }
+.channels h3 { transition: color .2s; }
+.channels > div:hover h3 { color: var(--cielo); }
+
+/* Recorrido: el nodo se enciende */
+.journey li::before { transition: transform .3s cubic-bezier(.3,.7,.4,1), background-color .2s, box-shadow .3s; }
+.journey li:hover::before { transform: scale(1.35); background: var(--cielo); box-shadow: 0 0 0 6px rgba(120,165,245,.18), 0 0 24px rgba(120,165,245,.6); }
+.journey .j-end:hover::before { background: var(--naranja); box-shadow: 0 0 0 6px rgba(252,129,38,.2), 0 0 24px rgba(252,129,38,.6); }
+.journey h3 { transition: transform .3s cubic-bezier(.3,.7,.4,1); }
+.journey li:hover h3 { transform: translateX(4px); }
+
+/* Método: la regla superior se llena de azul */
+.timeline li { position: relative; padding-bottom: 8px; background-image: radial-gradient(220px circle at var(--mx) var(--my), rgba(40,94,201,.08), transparent 70%); }
+.timeline li::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -2px; height: 3px;
+  background: var(--azul); transform: scaleX(0); transform-origin: left;
+  transition: transform .45s cubic-bezier(.3,.7,.4,1);
+}
+.timeline li:hover::before { transform: scaleX(1); }
+.t-n { display: inline-block; transition: transform .3s cubic-bezier(.3,.7,.4,1); }
+.timeline li:hover .t-n { transform: translate(3px, -3px); }
+
+/* Preguntas */
+.faq summary { transition: color .2s, padding-left .25s; }
+.faq summary:hover { color: var(--azul); padding-left: 8px; }
+.faq details[open] p { animation: faq-open .3s ease-out; }
+@keyframes faq-open { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* Dato */
+.fact-num { display: inline-block; transition: transform .5s cubic-bezier(.3,.7,.4,1), color .3s; }
+.fact-inner:hover .fact-num { transform: translate(6px, -8px); color: var(--azul); }
+
+/* Formulario */
+.form { background-image: radial-gradient(360px circle at var(--mx) var(--my), rgba(40,94,201,.06), transparent 70%); }
+.field input:hover, .field textarea:hover { border-color: var(--cielo); }
+.chips span { transition: background-color .15s, border-color .15s, color .15s, transform .15s; }
+.chips label:hover span { border-color: var(--azul); transform: translateY(-2px); }
+
+/* Contacto y pie */
+.contact-direct li { transition: padding-left .25s; }
+.contact-direct li:hover { padding-left: 8px; }
+.footer-inner nav a { position: relative; }
+.footer-inner nav a:hover { text-decoration: none; }
+.footer-inner nav a::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 2px; background: var(--naranja);
+  transform: scaleX(0); transform-origin: left; transition: transform .25s;
+}
+.footer-inner nav a:hover::after { transform: scaleX(1); }
+
+/* Pantallas táctiles: sin elevaciones que queden pegadas */
+@media (hover: none) {
+  .step:hover, .btn:hover { transform: none; box-shadow: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  .store { transform: none !important; }
+}

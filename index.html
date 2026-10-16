@@ -37,6 +37,7 @@
 
   <!-- HERO: plano de una ficha de producto -->
   <section class="hero">
+    <canvas class="tri-field" data-tone="light" aria-hidden="true"></canvas>
     <span class="diagonal" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4 L22 12 L4 20" /></svg></span>
     <div class="wrap hero-grid">
       <div class="hero-copy">
@@ -56,7 +57,7 @@
 
       <figure class="blueprint" aria-label="Plano de una ficha de producto con anotaciones de conversión">
         <div class="store">
-          <div class="store-bar">
+          <div class="store-bar" data-note="n1">
             <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
             <span class="url">tutienda.com/zapatilla-urbana</span>
           </div>
@@ -69,11 +70,11 @@
             </div>
             <div class="product-info">
               <p class="p-name">Zapatilla Urbana 01</p>
-              <p class="p-price">$ 89.900</p>
+              <p class="p-price" data-note="n2">$ 89.900</p>
               <p class="p-terms">3 cuotas sin interés</p>
               <div class="sizes" aria-hidden="true"><span>38</span><span class="on">40</span><span>41</span><span>42</span></div>
-              <span class="buy">Agregar al carrito</span>
-              <p class="p-ship">Envío gratis a todo el país</p>
+              <span class="buy" data-note="n3">Agregar al carrito</span>
+              <p class="p-ship" data-note="n4">Envío gratis a todo el país</p>
             </div>
           </div>
         </div>
@@ -149,6 +150,7 @@
 
   <!-- PAID MEDIA -->
   <section id="paid-media" class="section media">
+    <canvas class="tri-field" data-tone="dark" aria-hidden="true"></canvas>
     <div class="wrap">
       <div class="media-head">
         <h2>El tráfico que pagás aterriza en una tienda que convierte.</h2>
