@@ -1,3 +1,8 @@
+// Menú: transparente sobre el hero, con fondo al desplazarse
+const header = document.querySelector('.site-header');
+const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 24 || nav.classList.contains('open'));
+window.addEventListener('scroll', onScroll, { passive: true });
+
 // Menú mobile
 const toggle = document.querySelector('.menu-toggle');
 const nav = document.getElementById('nav');
@@ -5,11 +10,14 @@ toggle.addEventListener('click', () => {
   const open = toggle.getAttribute('aria-expanded') === 'true';
   toggle.setAttribute('aria-expanded', String(!open));
   nav.classList.toggle('open', !open);
+  onScroll();
 });
+onScroll();
 nav.addEventListener('click', (e) => {
   if (e.target.closest('a')) {
     toggle.setAttribute('aria-expanded', 'false');
     nav.classList.remove('open');
+    onScroll();
   }
 });
 
@@ -89,19 +97,24 @@ const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches
    diagonal (atan(30/40) = 37°, el ángulo de la flecha del
    isotipo). La luz sigue al cursor y se ve por las uniones.
    --------------------------------------------------------- */
+// mezcla dos colores RGB: t = 1 da b, t = 0 da a
+const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * Math.min(1, t)));
+
 const TONES = {
   dark: {
     radius: 300,
     face: [120, 165, 245], faceAlpha: 0.45,
     edge: [170, 205, 255], edgeAlpha: 1, halo: 0.55, width: 1.6,
-    base: 0.05,
+    base: 0.05, decay: 0.955,
+    tail: [40, 94, 201],
     hot: [252, 129, 38],
   },
   light: {
     radius: 240,
     face: [40, 94, 201], faceAlpha: 0.24,
     edge: [40, 94, 201], edgeAlpha: 1, halo: 0.14, width: 1.3,
-    base: 0,
+    base: 0, decay: 0.95,
+    tail: [18, 52, 128],
     hot: [252, 129, 38],
   },
 };
@@ -126,8 +139,8 @@ function triField(canvas) {
     for (let y = 0; y < height + H; y += H) {
       for (let x = 0; x < width + W; x += W) {
         // dos triángulos por celda, separados por la diagonal ascendente
-        tris.push({ p: [x, y, x + W, y, x, y + H], cx: x + W / 3, cy: y + H / 3, s: Math.random() });
-        tris.push({ p: [x + W, y, x + W, y + H, x, y + H], cx: x + (2 * W) / 3, cy: y + (2 * H) / 3, s: Math.random() });
+        tris.push({ p: [x, y, x + W, y, x, y + H], cx: x + W / 3, cy: y + H / 3, s: Math.random(), heat: 0 });
+        tris.push({ p: [x + W, y, x + W, y + H, x, y + H], cx: x + (2 * W) / 3, cy: y + (2 * H) / 3, s: Math.random(), heat: 0 });
       }
     }
     draw();
@@ -151,42 +164,60 @@ function triField(canvas) {
       }
       ctx.stroke();
     }
-    if (glow < 0.01) return;
-
-    // halo de luz bajo la trama
-    const g = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, R * 1.1);
-    g.addColorStop(0, `rgba(${tone.face}, ${tone.halo * glow})`);
-    g.addColorStop(1, `rgba(${tone.face}, 0)`);
-    ctx.fillStyle = g;
-    ctx.fillRect(pos.x - R * 1.1, pos.y - R * 1.1, R * 2.2, R * 2.2);
+    if (glow > 0.01) {
+      // halo de luz bajo el cursor
+      const g = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, R * 1.1);
+      g.addColorStop(0, `rgba(${tone.face}, ${tone.halo * glow})`);
+      g.addColorStop(1, `rgba(${tone.face}, 0)`);
+      ctx.fillStyle = g;
+      ctx.fillRect(pos.x - R * 1.1, pos.y - R * 1.1, R * 2.2, R * 2.2);
+    }
     ctx.lineWidth = tone.width;
 
+    // cada triángulo guarda su "calor": así el recorrido deja una estela
     for (const t of tris) {
-      const dx = t.cx - pos.x, dy = t.cy - pos.y;
-      const d2 = dx * dx + dy * dy;
-      if (d2 > R * R) continue;
-      const f = Math.pow(1 - Math.sqrt(d2) / R, 1.2) * glow;
+      const f = t.heat;
+      if (f < 0.01) continue;
       const p = t.p;
       ctx.beginPath();
       ctx.moveTo(p[0], p[1]); ctx.lineTo(p[2], p[3]); ctx.lineTo(p[4], p[5]); ctx.closePath();
       const hot = t.s > 0.93 && f > 0.3;
-      const c = hot ? tone.hot : tone.face;
+      // la estela vira del color fresco (cielo) al profundo a medida que se enfría
+      const c = hot ? tone.hot : mix(tone.tail, tone.face, f);
       ctx.fillStyle = `rgba(${c}, ${hot ? f * 0.6 : f * tone.faceAlpha * (0.35 + t.s)})`;
       ctx.fill();
-      ctx.strokeStyle = `rgba(${tone.edge}, ${f * tone.edgeAlpha})`;
+      ctx.strokeStyle = `rgba(${mix(tone.tail, tone.edge, f)}, ${f * tone.edgeAlpha})`;
       ctx.stroke();
     }
+  }
+
+  // enfría todo y calienta lo que está bajo el cursor
+  function stamp() {
+    const R = tone.radius;
+    let max = 0;
+    for (const t of tris) {
+      let h = t.heat * tone.decay;
+      if (glow > 0.01) {
+        const dx = t.cx - pos.x, dy = t.cy - pos.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < R * R) h = Math.max(h, Math.pow(1 - Math.sqrt(d2) / R, 1.2) * glow);
+      }
+      t.heat = h < 0.005 ? 0 : h;
+      if (h > max) max = h;
+    }
+    return max;
   }
 
   function tick() {
     pos.x += (target.x - pos.x) * 0.14;
     pos.y += (target.y - pos.y) * 0.14;
     glow += (glowTarget - glow) * 0.08;
+    const heat = stamp();
     draw();
     const moving = Math.abs(target.x - pos.x) > 0.3 || Math.abs(target.y - pos.y) > 0.3 || Math.abs(glowTarget - glow) > 0.005;
-    raf = moving && visible ? requestAnimationFrame(tick) : 0;
+    raf = (moving || heat > 0.01) && visible ? requestAnimationFrame(tick) : 0;
   }
-  const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
+  const kick = () => { if (!raf && !reduceMotion) raf = requestAnimationFrame(tick); };
 
   if (reduceMotion) {
     glow = glowTarget = 0.35;
@@ -210,6 +241,7 @@ function triField(canvas) {
         glowTarget = 0.8;
         pos.x += (target.x - pos.x) * 0.05; pos.y += (target.y - pos.y) * 0.05;
         glow += (glowTarget - glow) * 0.05;
+        stamp();
         draw();
       }
       requestAnimationFrame(wander);
@@ -221,7 +253,7 @@ function triField(canvas) {
   let rt;
   window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(build, 150); });
   build();
-  if (reduceMotion) { pos.x = target.x = width * 0.9; pos.y = target.y = height * 0.85; draw(); }
+  if (reduceMotion) { pos.x = target.x = width * 0.9; pos.y = target.y = height * 0.85; stamp(); draw(); }
 }
 document.querySelectorAll('.tri-field').forEach(triField);
 
