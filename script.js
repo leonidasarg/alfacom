@@ -102,7 +102,7 @@ const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * Math.min(1,
 
 const TONES = {
   dark: {
-    radius: 300,
+    radius: 180,
     face: [120, 165, 245], faceAlpha: 0.45,
     edge: [170, 205, 255], edgeAlpha: 1, halo: 0.55, width: 1.6,
     base: 0.05, decay: 0.955,
@@ -110,7 +110,7 @@ const TONES = {
     hot: [252, 129, 38],
   },
   light: {
-    radius: 240,
+    radius: 150,
     face: [40, 94, 201], faceAlpha: 0.24,
     edge: [40, 94, 201], edgeAlpha: 1, halo: 0.14, width: 1.3,
     base: 0, decay: 0.95,
