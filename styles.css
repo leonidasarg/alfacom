@@ -106,11 +106,16 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 section[id] { scroll-margin-top: 64px; }
 .header-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
 .brand img { width: 150px; height: auto; }
-.nav { display: flex; align-items: center; gap: 32px; }
+.nav { display: flex; align-items: center; gap: 8px; }
+.nav .btn { margin-left: 16px; }
 .nav a:not(.btn) {
-  text-decoration: none; font-weight: 500; font-size: .9375rem; color: var(--pizarra);
+  text-decoration: none; font-weight: 500; font-size: .9375rem; color: var(--noche);
+  padding: 8px 14px; border-radius: 99px;
+  /* contorno del color del fondo: se lee aunque haya triángulos encendidos detrás */
+  text-shadow: 0 0 6px var(--niebla), 0 0 2px var(--niebla);
+  transition: background-color .2s, color .2s, text-shadow .2s;
 }
-.nav a:not(.btn):hover { color: var(--azul); }
+.nav a:not(.btn):hover { background: var(--noche); color: var(--blanco); text-shadow: none; }
 .menu-toggle { display: none; }
 
 /* ---------- Hero ---------- */
@@ -476,7 +481,10 @@ section[id] { scroll-margin-top: 64px; }
     padding: 8px var(--gutter) 20px; display: none;
   }
   .nav.open { display: flex; }
-  .nav a:not(.btn) { padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 1.0625rem; }
+  .nav a:not(.btn) { padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 1.0625rem; border-radius: 0; }
+  .nav a:not(.btn):hover { background: none; color: var(--azul); }
+  .nav a:not(.btn)::after { left: 0; right: 0; bottom: -1px; }
+  .nav .btn { margin-left: 0; }
   .nav .btn { margin-top: 16px; }
 
   .steps { grid-template-columns: 1fr; }
@@ -543,7 +551,7 @@ section[id] { scroll-margin-top: 64px; }
 /* Navegación: subrayado que crece */
 .nav a:not(.btn) { position: relative; }
 .nav a:not(.btn)::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px;
+  content: ""; position: absolute; left: 14px; right: 14px; bottom: 5px; height: 2px;
   background: var(--naranja); transform: scaleX(0); transform-origin: left;
   transition: transform .25s cubic-bezier(.3,.7,.4,1);
 }

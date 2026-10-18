@@ -107,14 +107,16 @@ const TONES = {
     edge: [170, 205, 255], edgeAlpha: 1, halo: 0.55, width: 1.6,
     base: 0.05, decay: 0.955,
     tail: [40, 94, 201],
+    lit: [205, 225, 255], shade: [14, 36, 92],
     hot: [252, 129, 38],
   },
   light: {
     radius: 150,
-    face: [40, 94, 201], faceAlpha: 0.24,
-    edge: [40, 94, 201], edgeAlpha: 1, halo: 0.14, width: 1.3,
+    face: [78, 130, 230], faceAlpha: 0.42,
+    edge: [40, 94, 201], edgeAlpha: 1, halo: 0.18, width: 1.4,
     base: 0, decay: 0.95,
     tail: [18, 52, 128],
+    lit: [150, 190, 250], shade: [18, 52, 128],
     hot: [252, 129, 38],
   },
 };
@@ -139,8 +141,8 @@ function triField(canvas) {
     for (let y = 0; y < height + H; y += H) {
       for (let x = 0; x < width + W; x += W) {
         // dos triángulos por celda, separados por la diagonal ascendente
-        tris.push({ p: [x, y, x + W, y, x, y + H], cx: x + W / 3, cy: y + H / 3, s: Math.random(), heat: 0 });
-        tris.push({ p: [x + W, y, x + W, y + H, x, y + H], cx: x + (2 * W) / 3, cy: y + (2 * H) / 3, s: Math.random(), heat: 0 });
+        tris.push({ p: [x, y, x + W, y, x, y + H], cx: x + W / 3, cy: y + H / 3, s: Math.random(), heat: 0, up: true });
+        tris.push({ p: [x + W, y, x + W, y + H, x, y + H], cx: x + (2 * W) / 3, cy: y + (2 * H) / 3, s: Math.random(), heat: 0, up: false });
       }
     }
     draw();
@@ -174,7 +176,9 @@ function triField(canvas) {
     }
     ctx.lineWidth = tone.width;
 
-    // cada triángulo guarda su "calor": así el recorrido deja una estela
+    // cada triángulo guarda su "calor": así el recorrido deja una estela.
+    // Relieve: luz desde arriba a la izquierda. El triángulo superior de
+    // cada celda mira a la luz (cara clara) y el inferior queda en sombra.
     for (const t of tris) {
       const f = t.heat;
       if (f < 0.01) continue;
@@ -182,11 +186,22 @@ function triField(canvas) {
       ctx.beginPath();
       ctx.moveTo(p[0], p[1]); ctx.lineTo(p[2], p[3]); ctx.lineTo(p[4], p[5]); ctx.closePath();
       const hot = t.s > 0.93 && f > 0.3;
-      // la estela vira del color fresco (cielo) al profundo a medida que se enfría
-      const c = hot ? tone.hot : mix(tone.tail, tone.face, f);
-      ctx.fillStyle = `rgba(${c}, ${hot ? f * 0.6 : f * tone.faceAlpha * (0.35 + t.s)})`;
+      // la estela vira del color fresco al profundo a medida que se enfría
+      const base = mix(tone.tail, tone.face, f);
+      const c = hot ? tone.hot : t.up ? mix(base, tone.lit, 0.45) : mix(base, tone.shade, 0.4);
+      ctx.fillStyle = `rgba(${c}, ${hot ? f * 0.6 : f * tone.faceAlpha * (0.5 + 0.5 * t.s)})`;
       ctx.fill();
-      ctx.strokeStyle = `rgba(${mix(tone.tail, tone.edge, f)}, ${f * tone.edgeAlpha})`;
+
+      // bordes iluminados y bordes en sombra
+      ctx.beginPath();
+      if (t.up) { ctx.moveTo(p[4], p[5]); ctx.lineTo(p[0], p[1]); ctx.lineTo(p[2], p[3]); }
+      else { ctx.moveTo(p[4], p[5]); ctx.lineTo(p[0], p[1]); }
+      ctx.strokeStyle = `rgba(${tone.lit}, ${f * tone.edgeAlpha})`;
+      ctx.stroke();
+      ctx.beginPath();
+      if (t.up) { ctx.moveTo(p[2], p[3]); ctx.lineTo(p[4], p[5]); }
+      else { ctx.moveTo(p[0], p[1]); ctx.lineTo(p[2], p[3]); ctx.lineTo(p[4], p[5]); }
+      ctx.strokeStyle = `rgba(${tone.shade}, ${f * tone.edgeAlpha * 0.8})`;
       ctx.stroke();
     }
   }
@@ -222,14 +237,21 @@ function triField(canvas) {
   if (reduceMotion) {
     glow = glowTarget = 0.35;
   } else if (canHover) {
-    section.addEventListener('pointermove', (e) => {
+    // se escucha en toda la página para que el efecto siga funcionando
+    // aunque el cursor esté sobre el menú, que flota encima del hero
+    window.addEventListener('pointermove', (e) => {
       const r = section.getBoundingClientRect();
+      const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+      if (!inside) {
+        if (glowTarget) { glowTarget = 0; kick(); }
+        return;
+      }
       target.x = e.clientX - r.left; target.y = e.clientY - r.top;
       if (glow < 0.02) { pos.x = target.x; pos.y = target.y; }
       glowTarget = 1;
       kick();
-    });
-    section.addEventListener('pointerleave', () => { glowTarget = 0; kick(); });
+    }, { passive: true });
+    document.documentElement.addEventListener('pointerleave', () => { glowTarget = 0; kick(); });
   } else {
     // táctil: la luz recorre la sección sola, despacio
     let t0 = performance.now();
