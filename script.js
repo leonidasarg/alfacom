@@ -324,3 +324,20 @@ if (canHover) {
     });
   });
 }
+
+/* ---------------------------------------------------------
+   Linterna de color en los títulos
+   --------------------------------------------------------- */
+if (canHover) {
+  document.querySelectorAll('h1, h2, .step h3, .fact-num').forEach((el) => {
+    el.classList.add('spot');
+    if (el.closest('.media, .s3')) el.classList.add('spot-dark');
+    el.addEventListener('pointermove', (e) => {
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--tx', e.clientX - r.left + 'px');
+      el.style.setProperty('--ty', e.clientY - r.top + 'px');
+      el.classList.add('is-lit');
+    });
+    el.addEventListener('pointerleave', () => el.classList.remove('is-lit'));
+  });
+}

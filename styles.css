@@ -651,6 +651,23 @@ section[id] { scroll-margin-top: 64px; }
   .step:hover, .btn:hover { transform: none; box-shadow: none; }
 }
 
+/* Linterna de color en los títulos: las letras cambian de color
+   solo donde está el cursor (script.js agrega .spot y mueve --tx/--ty) */
+@property --tr { syntax: "<length>"; inherits: false; initial-value: 0px; }
+.spot {
+  --tx: -999px; --ty: -999px;
+  --t-base: var(--noche); --t-mid: var(--azul); --t-hot: var(--naranja);
+  background-image: radial-gradient(circle var(--tr) at var(--tx) var(--ty),
+    var(--t-hot) 0 28%, var(--t-mid) 40%, var(--t-base) 100%);
+  background-color: var(--t-base);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  transition: --tr .35s cubic-bezier(.3,.7,.4,1);
+}
+.spot.is-lit { --tr: 140px; }
+.spot-dark { --t-base: var(--blanco); --t-mid: var(--cielo); }
+.fact-num.spot { --t-base: var(--azul-profundo); --t-mid: var(--azul); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
   .store { transform: none !important; }
