@@ -777,3 +777,8 @@ section[id] { scroll-margin-top: 64px; }
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
   .store { transform: none !important; }
 }
+
+/* Campo trampa para bots: fuera de pantalla, no visible para personas */
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.form-error a { color: inherit; text-decoration: underline; }
+.form button[disabled] { opacity: .7; cursor: progress; }

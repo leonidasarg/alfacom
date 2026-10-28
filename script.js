@@ -49,11 +49,17 @@ placeNotes();
 window.addEventListener('resize', placeNotes);
 document.fonts && document.fonts.ready.then(placeNotes);
 
-// Formulario: valida y abre el correo con la consulta armada
+// Formulario: valida y guarda la consulta en Supabase (tabla public.consultas).
+// La clave publicable es pública por diseño: la tabla solo acepta INSERT
+// desde la web (RLS), así que con ella no se puede leer ninguna consulta.
+const SUPABASE_URL = 'https://kclciyiajjryaxdwwilx.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Za7uEC9f1_07nj_y1Ag2Lw_xW0zIfba';
+
 const form = document.getElementById('form');
 const errorBox = document.getElementById('form-error');
 const statusBox = document.getElementById('form-status');
-form.addEventListener('submit', (e) => {
+const submitBtn = form.querySelector('button[type="submit"]');
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const name = form.nombre;
   const email = form.email;
@@ -78,28 +84,65 @@ form.addEventListener('submit', (e) => {
   errorBox.hidden = true;
 
   const services = [...form.querySelectorAll('input[name="servicio"]:checked')].map((i) => i.value);
-  const body = [
-    'Nombre: ' + name.value.trim(),
-    'Email: ' + email.value.trim(),
-    'Tienda actual: ' + (form.tienda.value.trim() || '-'),
-    'Necesito: ' + (services.join(', ') || '-'),
-    '',
-    form.mensaje.value.trim(),
-  ].join('\n');
+  const consulta = {
+    nombre: name.value.trim(),
+    email: email.value.trim(),
+    tienda: form.tienda.value.trim() || null,
+    servicios: services,
+    mensaje: form.mensaje.value.trim() || null,
+    origen: 'web' + (location.search ? ' ' + location.search.slice(0, 100) : ''),
+  };
 
-  const mailto = 'mailto:hola@alfacom.com?subject=' +
-    encodeURIComponent('Consulta desde la web: ' + name.value.trim()) +
-    '&body=' + encodeURIComponent(body);
-  window.location.href = mailto;
+  // campo trampa para bots: una persona nunca lo ve ni lo completa
+  if (form.empresa_web.value) {
+    showSent();
+    return;
+  }
 
-  // no se puede saber si el correo se abrió: los datos quedan cargados
-  // y se ofrece la vía manual
-  statusBox.innerHTML =
-    'Armamos tu consulta en tu programa de correo: revisala y enviala. ' +
-    'Si no se abrió, <a href="' + mailto + '">abrila acá</a> o escribinos a ' +
-    '<a href="mailto:hola@alfacom.com">hola@alfacom.com</a>.';
-  statusBox.hidden = false;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Enviando…';
+  statusBox.hidden = true;
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/consultas', {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(consulta),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    form.reset();
+    showSent();
+  } catch (err) {
+    // no se pudo guardar: los datos quedan cargados y se ofrece el correo
+    const body = [
+      'Nombre: ' + consulta.nombre,
+      'Email: ' + consulta.email,
+      'Tienda actual: ' + (consulta.tienda || '-'),
+      'Necesito: ' + (services.join(', ') || '-'),
+      '',
+      consulta.mensaje || '',
+    ].join('\n');
+    const mailto = 'mailto:hola@alfacom.com?subject=' +
+      encodeURIComponent('Consulta desde la web: ' + consulta.nombre) +
+      '&body=' + encodeURIComponent(body);
+    errorBox.innerHTML =
+      'No pudimos enviar la consulta. Revisá tu conexión y probá de nuevo, ' +
+      'o <a href="' + mailto + '">mandala por correo</a>.';
+    errorBox.hidden = false;
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Enviar consulta';
+  }
 });
+
+function showSent() {
+  statusBox.textContent = 'Consulta enviada. Te respondemos en menos de 24 horas hábiles.';
+  statusBox.hidden = false;
+}
 
 // Los botones que llevan al formulario marcan el servicio correspondiente
 document.querySelectorAll('[data-servicio]').forEach((link) => {
