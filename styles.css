@@ -244,8 +244,7 @@ section[id] { scroll-margin-top: 64px; }
 .thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .thumbs span { border-radius: 8px; overflow: hidden; aspect-ratio: 1 / 1; box-shadow: 0 0 0 1px #E1E6EE; }
 .thumbs span.on { box-shadow: 0 0 0 2px var(--noche); }
-.thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.6); }
-.thumbs span:first-child img { transform: none; }
+.thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .product-info { display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 0; }
 .crumbs { font-size: .6875rem; color: #66717F; }
