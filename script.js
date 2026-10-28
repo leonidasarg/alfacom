@@ -13,12 +13,14 @@ toggle.addEventListener('click', () => {
   onScroll();
 });
 onScroll();
-nav.addEventListener('click', (e) => {
-  if (e.target.closest('a')) {
-    toggle.setAttribute('aria-expanded', 'false');
-    nav.classList.remove('open');
-    onScroll();
-  }
+const closeMenu = () => {
+  toggle.setAttribute('aria-expanded', 'false');
+  nav.classList.remove('open');
+  onScroll();
+};
+nav.addEventListener('click', (e) => { if (e.target.closest('a')) closeMenu(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && nav.classList.contains('open')) { closeMenu(); toggle.focus(); }
 });
 
 // Alinea cada anotación del plano con el elemento que señala
@@ -50,6 +52,7 @@ document.fonts && document.fonts.ready.then(placeNotes);
 // Formulario: valida y abre el correo con la consulta armada
 const form = document.getElementById('form');
 const errorBox = document.getElementById('form-error');
+const statusBox = document.getElementById('form-status');
 form.addEventListener('submit', (e) => {
   e.preventDefault();
   const name = form.nombre;
@@ -63,6 +66,12 @@ form.addEventListener('submit', (e) => {
   if (missing.length) {
     errorBox.textContent = 'Para enviar la consulta, completá ' + missing.join(' y ') + '.';
     errorBox.hidden = false;
+    // sacudida: quitar, forzar reflow y volver a poner para que se repita
+    form.querySelectorAll('[aria-invalid="true"]').forEach((f) => {
+      f.classList.remove('is-shaking');
+      void f.offsetWidth;
+      f.classList.add('is-shaking');
+    });
     form.querySelector('[aria-invalid="true"]').focus();
     return;
   }
@@ -78,13 +87,26 @@ form.addEventListener('submit', (e) => {
     form.mensaje.value.trim(),
   ].join('\n');
 
-  window.location.href = 'mailto:hola@alfacom.com?subject=' +
+  const mailto = 'mailto:hola@alfacom.com?subject=' +
     encodeURIComponent('Consulta desde la web: ' + name.value.trim()) +
     '&body=' + encodeURIComponent(body);
+  window.location.href = mailto;
 
-  form.innerHTML =
-    '<div class="form-done" role="status"><h3>Consulta lista para enviar</h3>' +
-    '<p>Se abrió tu correo con los datos cargados. Envialo y te respondemos en menos de 24 horas hábiles.</p></div>';
+  // no se puede saber si el correo se abrió: los datos quedan cargados
+  // y se ofrece la vía manual
+  statusBox.innerHTML =
+    'Armamos tu consulta en tu programa de correo: revisala y enviala. ' +
+    'Si no se abrió, <a href="' + mailto + '">abrila acá</a> o escribinos a ' +
+    '<a href="mailto:hola@alfacom.com">hola@alfacom.com</a>.';
+  statusBox.hidden = false;
+});
+
+// Los botones que llevan al formulario marcan el servicio correspondiente
+document.querySelectorAll('[data-servicio]').forEach((link) => {
+  link.addEventListener('click', () => {
+    const box = form.querySelector(`input[name="servicio"][value="${link.dataset.servicio}"]`);
+    if (box) box.checked = true;
+  });
 });
 
 document.getElementById('year').textContent = new Date().getFullYear();
@@ -129,7 +151,7 @@ function triField(canvas) {
   let tris = [], width = 0, height = 0, dpr = 1;
   const pos = { x: -9999, y: -9999 };
   const target = { x: -9999, y: -9999 };
-  let glow = 0, glowTarget = 0, raf = 0, visible = true;
+  let glow = 0, glowTarget = 0, raf = 0, visible = true, startWander = null;
 
   function build() {
     const r = section.getBoundingClientRect();
@@ -253,25 +275,30 @@ function triField(canvas) {
     }, { passive: true });
     document.documentElement.addEventListener('pointerleave', () => { glowTarget = 0; kick(); });
   } else {
-    // táctil: la luz recorre la sección sola, despacio
-    let t0 = performance.now();
+    // táctil: la luz recorre la sección sola, despacio, y el loop se
+    // detiene por completo cuando la sección sale de pantalla
+    const t0 = performance.now();
+    let wanderRaf = 0;
     const wander = (now) => {
-      if (visible) {
-        const t = (now - t0) / 1000;
-        target.x = width * (0.5 + 0.38 * Math.sin(t * 0.35));
-        target.y = height * (0.5 + 0.32 * Math.sin(t * 0.52 + 1));
-        glowTarget = 0.8;
-        pos.x += (target.x - pos.x) * 0.05; pos.y += (target.y - pos.y) * 0.05;
-        glow += (glowTarget - glow) * 0.05;
-        stamp();
-        draw();
-      }
-      requestAnimationFrame(wander);
+      if (!visible) { wanderRaf = 0; return; }
+      const t = (now - t0) / 1000;
+      target.x = width * (0.5 + 0.38 * Math.sin(t * 0.35));
+      target.y = height * (0.5 + 0.32 * Math.sin(t * 0.52 + 1));
+      glowTarget = 0.8;
+      pos.x += (target.x - pos.x) * 0.05; pos.y += (target.y - pos.y) * 0.05;
+      glow += (glowTarget - glow) * 0.05;
+      stamp();
+      draw();
+      wanderRaf = requestAnimationFrame(wander);
     };
-    requestAnimationFrame(wander);
+    startWander = () => { if (!wanderRaf) wanderRaf = requestAnimationFrame(wander); };
   }
 
-  new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) kick(); }).observe(section);
+  new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    if (!visible) return;
+    if (startWander) startWander(); else kick();
+  }).observe(section);
   let rt;
   window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(build, 150); });
   build();

@@ -40,7 +40,6 @@
     <canvas class="tri-field" data-tone="light" aria-hidden="true"></canvas>
     <div class="wrap hero-grid">
       <div class="hero-copy">
-        <p class="kicker">Desarrollo e-commerce</p>
         <h1>Tiendas online diseñadas para vender.</h1>
         <p class="lead">Creamos, desarrollamos y hacemos crecer tiendas rápidas, seguras y medibles. Y les llevamos tráfico con Google Ads y Meta Ads para que cada visita tenga un camino claro hacia la compra.</p>
         <div class="actions">
@@ -199,7 +198,7 @@
       <div class="fact-text">
         <p class="fact-claim">Un segundo más de carga puede costarte hasta un 7% de las ventas.</p>
         <p>Por eso medimos la velocidad antes de tocar el diseño. Te hacemos una auditoría gratuita de tu tienda y te mostramos dónde se están perdiendo compras.</p>
-        <a href="#contacto" class="btn btn-dark">Pedí tu auditoría gratis</a>
+        <a href="#contacto" class="btn btn-dark" data-servicio="Auditoría gratis">Pedí tu auditoría gratis</a>
       </div>
     </div>
   </section>
@@ -279,6 +278,7 @@
             <label><input type="checkbox" name="servicio" value="Mejorar mi tienda"><span>Mejorar mi tienda</span></label>
             <label><input type="checkbox" name="servicio" value="Google Ads / Meta Ads"><span>Google Ads / Meta Ads</span></label>
             <label><input type="checkbox" name="servicio" value="Desarrollo web"><span>Desarrollo web</span></label>
+            <label><input type="checkbox" name="servicio" value="Auditoría gratis"><span>Auditoría gratis</span></label>
           </div>
         </fieldset>
         <div class="field full">
@@ -286,6 +286,7 @@
           <textarea id="f-msg" name="mensaje" rows="4" placeholder="Qué vendés, a quién y qué te gustaría lograr"></textarea>
         </div>
         <p class="form-error" id="form-error" role="alert" hidden></p>
+        <p class="form-status" id="form-status" role="status" hidden></p>
         <button type="submit" class="btn btn-primary">Enviar consulta</button>
       </form>
     </div>
