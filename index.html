@@ -16,6 +16,7 @@
 
 <a class="skip" href="#contenido">Saltar al contenido</a>
 
+<!-- ===== SECCIÓN 1: MENÚ ===== -->
 <header class="site-header">
   <div class="wrap header-inner">
     <a href="#" class="brand" aria-label="Alfacom, inicio">
@@ -35,44 +36,60 @@
 
 <main id="contenido">
 
-  <!-- HERO: plano de una ficha de producto -->
+  <!-- ===== SECCIÓN 2: PORTADA (plano de una ficha de producto) ===== -->
   <section class="hero">
     <canvas class="tri-field" data-tone="light" aria-hidden="true"></canvas>
     <div class="wrap hero-grid">
       <div class="hero-copy">
-        <h1>Tiendas online diseñadas para vender.</h1>
+        <h1>Tu tienda online vendiendo 24/7.</h1>
         <p class="lead">Creamos, desarrollamos y hacemos crecer tiendas rápidas, seguras y medibles. Y les llevamos tráfico con Google Ads y Meta Ads para que cada visita tenga un camino claro hacia la compra.</p>
         <div class="actions">
           <a href="#contacto" class="btn btn-primary">Pedí tu presupuesto</a>
           <a href="#servicios" class="btn btn-ghost">Ver servicios</a>
         </div>
-        <dl class="specs">
-          <div><dt>Carga objetivo</dt><dd>&lt; 1.5 s</dd></div>
-          <div><dt>Core Web Vitals</dt><dd>en verde</dd></div>
-          <div><dt>Checkout</dt><dd>1 paso</dd></div>
-        </dl>
       </div>
 
-      <figure class="blueprint" aria-label="Plano de una ficha de producto con anotaciones de conversión">
+      <figure class="blueprint" aria-label="Ficha de producto de una tienda online, con anotaciones de conversión">
         <div class="store">
           <div class="store-bar" data-note="n1">
             <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span class="url">tutienda.com/zapatilla-urbana</span>
+            <span class="url">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2M3.5 7h9v6.5h-9z" /></svg>
+              tutienda.com/zapatillas/urbana-cloud
+            </span>
+          </div>
+          <div class="shop-head" aria-hidden="true">
+            <span class="shop-logo">URBANA</span>
+            <span class="shop-nav"><span>Hombre</span><span>Mujer</span><span>Ofertas</span></span>
+            <span class="shop-cart">
+              <svg viewBox="0 0 24 24"><path d="M5 8h14l-1.2 11.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8zM9 8V6.5a3 3 0 0 1 6 0V8" /></svg>
+              <b>2</b>
+            </span>
           </div>
           <div class="store-body">
-            <div class="product-img" aria-hidden="true">
-              <svg viewBox="0 0 200 120">
-                <path d="M18 86 C 30 60, 52 58, 70 62 L 98 40 C 108 34, 118 38, 122 48 L 132 66 C 150 70, 172 74, 182 88 L 182 98 L 18 98 Z" />
-                <path class="sole" d="M14 98 H 186 V 106 Q 186 110 182 110 H 18 Q 14 110 14 106 Z" />
-              </svg>
+            <div class="gallery">
+              <div class="product-img">
+                <img src="img/zapatilla.jpg" alt="" width="900" height="900" loading="eager" decoding="async">
+                <span class="off">-20%</span>
+              </div>
+              <div class="thumbs" aria-hidden="true">
+                <span class="on"><img src="img/zapatilla.jpg" alt=""></span>
+                <span><img src="img/zapatilla.jpg" alt="" style="object-position: 30% 85%"></span>
+                <span><img src="img/zapatilla.jpg" alt="" style="object-position: 70% 25%"></span>
+              </div>
             </div>
             <div class="product-info">
-              <p class="p-name">Zapatilla Urbana 01</p>
-              <p class="p-price" data-note="n2">$ 89.900</p>
-              <p class="p-terms">3 cuotas sin interés</p>
-              <div class="sizes" aria-hidden="true"><span>38</span><span class="on">40</span><span>41</span><span>42</span></div>
+              <p class="crumbs">Zapatillas · Urbanas</p>
+              <p class="p-name">Zapatilla Urbana Cloud</p>
+              <p class="p-price" data-note="n2"><s>$ 112.400</s> $ 89.900</p>
+              <p class="p-terms">3 cuotas sin interés de $ 29.966</p>
+              <p class="p-label">Talle</p>
+              <div class="sizes" aria-hidden="true"><span>38</span><span>39</span><span class="on">40</span><span class="out">41</span><span>42</span></div>
               <span class="buy" data-note="n3">Agregar al carrito</span>
-              <p class="p-ship" data-note="n4">Envío gratis a todo el país</p>
+              <p class="p-ship" data-note="n4">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7M7.5 18.5a1.5 1.5 0 1 0 0-.01M17.5 18.5a1.5 1.5 0 1 0 0-.01" /></svg>
+                Envío gratis a todo el país
+              </p>
             </div>
           </div>
         </div>
@@ -88,7 +105,7 @@
     </div>
   </section>
 
-  <!-- CREAR / DESARROLLAR / EXPANDIR -->
+  <!-- ===== SECCIÓN 3: SERVICIOS (Creamos / Desarrollamos / Expandimos) ===== -->
   <section id="servicios" class="section climb">
     <div class="wrap">
       <header class="section-head">
@@ -129,6 +146,7 @@
         </li>
       </ol>
 
+      <!-- ===== SECCIÓN 4: DESARROLLO WEB Y PLATAFORMAS ===== -->
       <div class="also">
         <div class="also-text">
           <h3>También hacemos desarrollo web</h3>
@@ -146,7 +164,7 @@
     </div>
   </section>
 
-  <!-- PAID MEDIA -->
+  <!-- ===== SECCIÓN 5: PAID MEDIA ===== -->
   <section id="paid-media" class="section media">
     <canvas class="tri-field" data-tone="dark" aria-hidden="true"></canvas>
     <div class="wrap">
@@ -191,7 +209,7 @@
     </div>
   </section>
 
-  <!-- DATO -->
+  <!-- ===== SECCIÓN 6: DATO DE VELOCIDAD (1 s) ===== -->
   <section class="section fact">
     <div class="wrap fact-inner">
       <p class="fact-num">1 s</p>
@@ -203,7 +221,7 @@
     </div>
   </section>
 
-  <!-- METODO -->
+  <!-- ===== SECCIÓN 7: MÉTODO ===== -->
   <section id="metodo" class="section method">
     <div class="wrap">
       <header class="section-head">
@@ -221,7 +239,7 @@
     </div>
   </section>
 
-  <!-- FAQ -->
+  <!-- ===== SECCIÓN 8: PREGUNTAS FRECUENTES ===== -->
   <section class="section faq">
     <div class="wrap faq-grid">
       <h2>Preguntas frecuentes</h2>
@@ -246,7 +264,7 @@
     </div>
   </section>
 
-  <!-- CONTACTO -->
+  <!-- ===== SECCIÓN 9: CONTACTO ===== -->
   <section id="contacto" class="section contact">
     <div class="wrap contact-grid">
       <div class="contact-copy">
@@ -293,6 +311,7 @@
   </section>
 </main>
 
+<!-- ===== SECCIÓN 10: PIE ===== -->
 <footer class="site-footer">
   <div class="wrap footer-inner">
     <img src="Alfacom-Recursos-de-Marca/logos/alfacom-logo-negativo.png" alt="Alfacom" width="150" height="37">
